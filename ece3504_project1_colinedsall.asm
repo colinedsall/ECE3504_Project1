@@ -49,7 +49,7 @@
     clusters2:   .asciiz "shShSHchChCHthThTHphPhPHwhWhWHsmSmSMsnSn"
     clusters3:   .asciiz "SNspSpSPstStSTswSwSWtwTwTWcrCrCR"
 
-    # Suffices
+    # Suffixes
     suffix_ay:   .asciiz "ay"
     suffix_way:  .asciiz "way"
 
