@@ -40,7 +40,7 @@
 #       std::cout << str << " translates to: ";
 #
 #       // Call to pig_latin() function
-#       pig_latin(&str);
+#       pig_latin(str);
 #  
 #       std::cout << str << '\n';
 #  
@@ -160,12 +160,12 @@ main:
     addi $sp, $sp, -100                                 # Allocate 100 bytes on stack
 
     # Print prompt
-    li $v0, 4                                           
-    la $a0, prompt
+    li $v0, 4                                           # Arg for syscall
+    la $a0, prompt                                      # Address to prompt
     syscall                                             # Reference the syscall table
 
     # Read user input
-    li $v0, 8 
+    li $v0, 8                                           # Arg for syscall
     move $a0, $sp                                       # This stores the contents input
                                                         # to the console in &($a0 = $sp)
     li $a1, 100                                         # Length of array
@@ -209,8 +209,8 @@ main:
     jal process_input                                   # To process input string
 
     # Now that we're back, we want to restore the return address to the kernel procedure
-    lw $ra, 0($sp)
-    addi $sp, $sp, 4
+    lw $ra, 0($sp)                                      # Pop from stack
+    addi $sp, $sp, 4                                    # Restore stack pointer
 
     j main                                              # Restart program (NOT EXIT)
 
@@ -220,6 +220,8 @@ main:
 # program to quit and go to the exit procedure.
 # Its arguments are:
 #   $a0 = stack pointer
+# Its outputs are:
+#   $v0 = boolean value if the input string == "QUIT"
 # It modifies the following callee saves
 #   $s0 = stack pointer (to be indexed)
 #   $s1 = value of current character in stack (indexed value)
@@ -329,7 +331,7 @@ strings_equal:
 # This function has the arguments:
 #   $a0: contains stack pointer
 # This function modifies callee saves
-#
+#   SEE IN subfunction is_alpha...
 validate_input:
     # Note that we have $a0 as an argument in this function, so we don't need to save it
     # since we don't care about modifying it here. It will simply be passed onto the
@@ -423,7 +425,7 @@ alpha_valid:
 # by the definition of Pig Latin. The input arguments are:
 #   $a0:    Pointer to stack (start of array)
 # The function calls to the subfunction: pig_latin_transform
-
+#
 process_input:
     # We need to print the buffer before we modify it, since it's much easier to just
     # modify the input string on the stack then store it originally somewhere else.
@@ -454,16 +456,16 @@ process_input:
 
     # Handling printing output
     li $v0, 4                                           # Print output text
-    la $a0, output1
-    syscall
+    la $a0, output1                                     # Address to output text
+    syscall                                             # Reference syscall table
 
     li $v0, 4                                           # Print transformed string
-    move $a0, $sp
-    syscall
+    move $a0, $sp                                       # Arg: stack pointer
+    syscall                                             # Reference syscall table
 
     li $v0, 4                                           # Print a newline
-    la $a0, newline
-    syscall
+    la $a0, newline                                     # Address to newline char
+    syscall                                             # Reference syscall table
 
     # We must deallocate the stack before we can return and restart the program
     addi $sp, $sp, 100                                  # Deallocate 100 bytes
@@ -533,7 +535,7 @@ consonant_case_preparation:
     # We need to save the index of the input array in $t0 as a caller save
     move $t0, $a0                                       # Store input array pointer
     move $t1, $a0                                       # Store stack pointer
-    j consonant_case
+    j consonant_case                                    # Go to consonant_case
 
 
 # -------------------------------------------------------------------------------------
@@ -609,19 +611,19 @@ cluster_array_indexing:
 
 # We must add new functions to check for other arrays if we add more clustered consonants
 load_cluster:
-    la  $s1, clusters
+    la  $s1, clusters                                   # Load address of array
     j cluster_check                                     # Check this cluster
 
 load_cluster1:
-    la  $s1, clusters1
+    la  $s1, clusters1                                  # Load address of array
     j cluster_check                                     # Check this cluster
 
 load_cluster2:
-    la  $s1, clusters2
+    la  $s1, clusters2                                  # Load address of array
     j cluster_check                                     # Check this cluster
 
 load_cluster3:
-    la  $s1, clusters3
+    la  $s1, clusters3                                  # Load address of array
     j cluster_check                                     # Check this cluster
 
 # Here we begin a loop to check for clusters
@@ -767,7 +769,7 @@ append_consonant:
 #   $s3:    Value of the suffix array at an index
 append_suffix:
     move $s0, $a0                                       # Load the address of the array
-    move $s1, $a1
+    move $s1, $a1                                       # Load address to suffix array
 find_end:
     lb $s2, 0($s0)                                      # Load the value of the buffer
                                                         # at an index
@@ -814,9 +816,9 @@ append_loop:
 # is remove the 100 bytes and store the return address, then jump... after printing
 # the exit dialogue.
 exit_program:
-    li $v0, 4
-    la $a0, quit_msg
-    syscall
+    li $v0, 4                                           # Set up print string
+    la $a0, quit_msg                                    # Load address to quit msg
+    syscall                                             # Reference syscall table
 
     # Restore the 100 bytes we allocated to the stack for the buffer
     addi $sp, $sp, 100
@@ -838,9 +840,9 @@ exit_program:
 # entire stack, aka removing the buffer of chars and then the return address to kernel
 # since it will be reassigned back in main
 invalid_input:
-    li $v0, 4
-    la $a0, error_msg
-    syscall
+    li $v0, 4                                           # Set up error msg
+    la $a0, error_msg                                   # Load address to error msg
+    syscall                                             # Reference syscall table
 
     # Restore the 104 bytes we allocated to the stack for the buffer and return register
     addi $sp, $sp, 104
