@@ -1,8 +1,8 @@
 # -------------------------------------------------------------------------------------
 # Filename:     ece3504_project1_colinedsall.asm
 # Author:       Colin Edsall
+# Version:      1.1.1
 # Date:         6 March 2025
-# Version:      1.1
 # Description:  This code satisfies the functional requirements for the Pig Latin
 #               project described in this project specification. It properly
 #               handles prompting the user for an input string and modifying that
@@ -18,23 +18,92 @@
 #                   ->  append "way" to end, done.
 #               ->  if first letter is a consonant or a pair of consonants
 #                   ->  append "ay" to end after moving first consonant(s) to end
+#
+#
+# C++-style program definition (pseudocode):
+#
+# int main() {
+#   while(1) { // For example, if we want to loop
+#       std::cout << "Enter an alphabetic character string (QUIT to exit): "
+#       std::string str;
+#       std::cin >> str         // String is stored into input
+#
+#       // Validate the string
+#       for (int i = 0; i < str.length(); i++) {
+#           if (!isalpha(str[i])) {
+#               std::cout << "Invalid input! Please enter an 
+#                              alphabetic string." << '\n';
+#            }
+#       }
+#
+#       // Print original string
+#       std::cout << str << " translates to: ";
+#
+#       // Call to pig_latin() function
+#       pig_latin(&str);
+#  
+#       std::cout << str << '\n';
+#  
+#       }   // while loop scope
+#   return 0; // Or loop, depending on functionality
+# } 
+#
+# void pig_latin(std::string& str) {
+#   if (str.front() is vowel) {
+#       str = str + "way";
+#   }
+#   else if (str.front() is consonant) {
+#       if (str.front(two) is clustered consonants) {
+#           str = str.substr(2, str.length() - 2) + str.substr(0, 2);
+#           str += "ay";
+#       }
+#       else {
+#           char first_letter = str[0];
+#           str = str.substr(1, str.length() - 1) + str.substr(0, 1);
+#           str += "ay";
+#       }
+#   }
+#   return;
+# }
+#
 #               
-#               The stack allocation is as follows:
-#               -> Allocate 100 bytes of information on stack for a maximum of 100 char
-#                  input array.
-#               -> Stack contains the input string and its modified output, all changes
-#                  are stored on the stack to optimize usage.
-#               -> Several temporary and argument registers are used to hold the current
-#                  character value.
-#               -> Note that return addresses are pushed and popped to the stack until
-#                  the exit program call is made.
+# The stack allocation is as follows:
+# -> Allocate 100 bytes of information on stack for a maximum of 100 char
+#    input array.
+# -> Stack contains the input string and its modified output, all changes
+#    are stored on the stack to optimize usage.
+# -> Several temporary and argument registers are used to hold the current
+#    character value.
+# -> Return addresses are pushed and popped to the stack until
+#    the exit program call is made.
+#
+#
+# Registers are assigned different values several times depending on their
+# conventional uses.
+# -> Argument registers such as $a0 are used for arguments (i.e. addresses)
+#    and can be modified within function calls to subfunctions, etc.
+# -> Callee save registers such as $s0 are used inside callee functions to
+#    store and modify data over time, and can be clobbered by the caller.
+# -> Caller save registers such as $t0 are used in the case that we need
+#    extra registers to hold values or flags.
+#
+# -> Note that each function definition and subfunction/subroutine outlines
+#    the registers that are used and what they are used for. In the case that
+#    a single register may hold different values during a procedure, it is
+#    defined at the top of each label.
 #
 # Version History:
-# 1:            First version sent to GitHub, uses limited stack allocation and focuses
+# 1.0.0:        First version sent to GitHub, uses limited stack allocation and focuses
 #               on using registers to store variables between functions and subroutines.
-# 1.1           Changes program to allow for stack allocation for return registers after
+#               This means that the stack is allocated and deallocated once per run.
+#
+# 1.1.0         Changes program to allow for stack allocation for return registers after
 #               jumping and linking as well as handling exit of program/repeat in terms
-#               of jumping back to the return address assigned from the kernel procedure.                    
+#               of jumping back to the return address assigned from the kernel procedure.
+#               Changed program to use the proper assembly conventions for registers.
+#  
+# 1.1.1         Added comments for pseudocode to fit project description. No major func-
+#               tionality changes are made.                            
 # -------------------------------------------------------------------------------------
 
 # -------------------------------------------------------------------------------------
@@ -404,6 +473,7 @@ process_input:
     # is the kernel return address.
 
 # -------------------------------------------------------------------------------------
+
 
 # -------------------------------------------------------------------------------------
 # Function: pig_latin_transform
@@ -776,3 +846,5 @@ invalid_input:
     addi $sp, $sp, 104
 
     jr $ra                                              # Return to main
+# -------------------------------------------------------------------------------------
+
