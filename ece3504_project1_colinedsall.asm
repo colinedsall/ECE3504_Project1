@@ -847,6 +847,6 @@ invalid_input:
     # Restore the 104 bytes we allocated to the stack for the buffer and return register
     addi $sp, $sp, 104
 
-    jr $ra                                              # Return to main
+    j main                                              # Return to main
 # -------------------------------------------------------------------------------------
 
